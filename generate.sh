@@ -52,7 +52,7 @@ do
   completion+="\n  $fullCommand)"
   completion+="\n    _command_args=("
 
-  delimitedFlags=$(jq -r '. | select((.command == "'$command'") and (.topic == "'$topic'")) | .flags | .[] | .name + "\t" + .description + "\t" + .type + "\t" + .char' commands-display.json)
+  delimitedFlags=$(jq -r '. | select((.command == "'$command'") and (.topic == "'$topic'")) | .flags | .[] | .name + "\t" + .description + "\t" + .type + "\t" + (.hasValue|tostring) + "\t" + .char' commands-display.json)
   
   # create the array based on newlines
   IFS=$'\n'
@@ -67,7 +67,8 @@ do
     flagName=${flagArray2[0]}
     flagDescription=${flagArray2[1]}
     flagType=${flagArray2[2]}
-    flagChar=${flagArray2[3]}
+    flagValue=${flagArray2[3]}
+    flagChar=${flagArray2[4]}
 
     includeFiles=""
 
@@ -80,11 +81,21 @@ do
     flagDescription=$(echo $flagDescription | sed -e "s/\]/\\\]/g")
 
     # different format if there's not a single character arg
-    if [ "$flagChar" != "" ]
+    if [ "$flagValue" == "true" ]
     then
-      completion+="\n      '(-"$flagChar"|--"$flagName")'{-"$flagChar",--"$flagName"}'["$flagDescription"]$includeFiles' \\\\"
+        if [ "$flagChar" != "" ]
+        then
+          completion+="\n      '(-"$flagChar"|--"$flagName")'{-"$flagChar"=,--"$flagName"=}'["$flagDescription"]$includeFiles' \\\\"
+        else
+          completion+="\n      '(--"$flagName")--"$flagName"=["$flagDescription"]$includeFiles' \\\\"
+        fi
     else
-      completion+="\n      '(--"$flagName")--"$flagName"["$flagDescription"]$includeFiles' \\\\"
+        if [ "$flagChar" != "" ]
+        then
+          completion+="\n      '(-"$flagChar"|--"$flagName")'{-"$flagChar",--"$flagName"}'["$flagDescription"]$includeFiles' \\\\"
+        else
+          completion+="\n      '(--"$flagName")--"$flagName"["$flagDescription"]$includeFiles' \\\\"
+        fi
     fi
 
   done
