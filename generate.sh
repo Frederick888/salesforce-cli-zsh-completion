@@ -101,4 +101,4 @@ completion+="\n_arguments \\\\"
 completion+="\n  \$_command_args \\\\"
 completion+="\n  && return 0"
 
-echo $completion > _sfdx
+[[ "$(uname)" == "Linux" ]] && echo -e $completion > _sfdx || echo $completion > _sfdx
