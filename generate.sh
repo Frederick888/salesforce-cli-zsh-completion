@@ -21,11 +21,12 @@ completion+="\n"
 completion+="\n_1st_arguments=("
 
 commands=""
-while read name description
+while read name
 do
+  description="$(jq -r 'to_entries[] | select((.value.name) == "'"$name"'") | .value.description' commands-list.json | head -n 1)"
   name="$(echo $name | sed -e 's/:/\\:/g')"
   commands="${commands}\n\t\"$name\":\"$description\""
-done <<< "$(jq -r 'to_entries[] | "\(.value.name)\t\(.value.description)"' commands-list.json)"
+done <<< "$(jq -r 'to_entries[] | "\(.value.name)"' commands-list.json)"
 
 completion+=$commands
 completion+="\n)"
